@@ -1,0 +1,7 @@
+{
+  "require": {
+    "php":">=5.6.0",
+    "phpmailer/phpmailer": "v6.0.0rc2",
+    "fguillot/simpleLogger": "v1.0.1"
+  }
+}

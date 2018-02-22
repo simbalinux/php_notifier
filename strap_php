@@ -1,0 +1,69 @@
+#!/bin/bash
+set -x
+#install normal php in preperation for the php56 upgrade
+yum -y install php php-fpm
+
+#steps for the php56 upgrade
+yum --enablerepo=extras install epel-release -y
+yum -y install https://centos7.iuscommunity.org/ius-release.rpm
+yum -y update
+yum -y install yum-plugin-replace
+yum -y replace --replace-with php56u php
+
+
+#install other packages needed by composer
+yum -y install httpd curl wget zip unzip git vim 
+
+#shell script to make calls 
+cp -rf /vagrant/bash_call ~/
+systemctl start httpd.service
+systemctl enable httpd.service
+systemctl restart httpd.service
+
+#add vagrant user to the apache group
+usermod -a -G apache vagrant
+
+#cd to /tmp and install and condfigure composer
+cd /tmp
+#
+curl -sS https://getcomposer.org/installer | php
+#
+mv composer.phar /usr/local/bin/composer
+chmod +x /usr/local/bin/composer
+#/usr/local/bin/composer -V
+
+#copy over the app project folder into document root
+cp -rf /vagrant/raid-monitoring-notifier /var/www/html 
+cd /var/www/html/raid-monitoring-notifier
+
+#change permissions
+chown -R vagrant:apache /var/www/html/raid-monitoring-notifier
+chmod -R ug+rw /var/www/html
+
+#invoke composer as "vagrant" non-root user && configure the application requirements
+su - vagrant -c "cd /var/www/html/raid-monitoring-notifier && composer install"
+mv ./config/__main.php ./config/main.php
+
+#change permissions
+chown -R vagrant:apache /var/www/html/raid-monitoring-notifier
+chmod -R ug+rw /var/www/html
+systemctl restart httpd
+
+
+#deploy phpinfo page
+echo "<?php
+phpinfo();
+?>" | tee -a /var/www/html/raid-monitoring-notifier/public/info.php
+sleep 5 
+
+
+#curl -XGET localhost/raid-monitoring-notifier/public/info.php
+
+#disable selinux on next reboot
+sed -i 's/enforcing/disabled/g' /etc/selinux/config /etc/selinux/config
+sestatus
+#put in permissive mode
+setenforce 0
+
+
+

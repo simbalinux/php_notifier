@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Get unit status for each unit - all on one line - each unit staus separated by space
+#UNITSTATUS=`LD_LIBRARY_PATH=/opt/lsi/MegaCLI /opt/lsi/MegaCLI/MegaCli -AdpAllInfo -aALL -NoLog|egrep '^ (Degraded|Failed)'|grep -v ' 0'`
+
+UNITSTATUS="DEGRADED"
+#HOSTNAME=`hostname`
+HOSTNAME="testhost"
+  
+if [ "$UNITSTATUS" == "" ]; then
+  HEALTH_STATUS=GOOD
+  echo good
+fi
+  
+if [ "$UNITSTATUS" != "" ]; then
+HEALTH_STATUS=DEGRADED
+UNIT_STATUS=$(python -c "import urllib, sys; print urllib.quote(sys.argv[1])" "$UNITSTATUS")
+## Send wget Notice to Server for Mailing
+GET_URL="http://localhost/raid-monitoring-notifier/public/index.php?status=$HEALTH_STATUS&unit_status=$UNIT_STATUS&hostname=$HOSTNAME"
+wget -qO- $GET_URL &> /dev/null 
+fi
