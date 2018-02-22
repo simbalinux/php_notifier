@@ -8,6 +8,7 @@
 ### **Config**
 
 ##### _SMTP params:_
+##### _SMTP sample in /vagrant/sample_main.php_
    
 - "host" - Specify main and backup SMTP servers
 - "port" - TCP port to connect to

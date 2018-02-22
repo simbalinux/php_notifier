@@ -44,6 +44,7 @@ chmod -R ug+rw /var/www/html
 su - vagrant -c "cd /var/www/html/raid-monitoring-notifier && composer install"
 mv ./config/__main.php ./config/main.php
 
+
 #change permissions
 chown -R vagrant:apache /var/www/html/raid-monitoring-notifier
 chmod -R ug+rw /var/www/html
